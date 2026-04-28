@@ -25,7 +25,7 @@ jobs:
             exit 1
           fi
           
-          RESPONSE=$(curl -s -w "\\n%{http_code}" -X GET -H "Authorization: Bearer $CRON_SECRET" "https://botbotgogo.vercel.app/api/cron/heartbeat${FORCE_PARAM}")
+          RESPONSE=$(curl -s -w "\\n%{http_code}" -X GET -H "Authorization: Bearer $CRON_SECRET" "https://www.botbotgogo.com/api/cron/heartbeat${FORCE_PARAM}")
           BODY=$(echo "$RESPONSE" | head -n -1)
           STATUS=$(echo "$RESPONSE" | tail -n 1)
           echo "Status Code: $STATUS"
