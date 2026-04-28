@@ -24,7 +24,7 @@
   "crons": [
     {
       "path": "/api/cron/heartbeat",
-      "schedule": "*/3 * * * *"
+     "schedule": "0 0 * * *"
     }
   ]
 }

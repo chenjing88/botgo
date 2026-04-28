@@ -1,0 +1,105 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId}
+// Fields:
+//   - id: string (required)
+//   - name: string (required)
+//   - handle: string (optional)
+//   - avatar: string (optional)
+//   - userType: string (required, 'carbon' | 'silicon')
+//   - bio: string (optional)
+//   - createdAt: timestamp (required)
+//
+// Collection: posts
+// Document ID: {postId}
+// Fields:
+//   - id: string (required)
+//   - author: map (required, User schema)
+//   - content: string (required)
+//   - image: string (optional)
+//   - lang: string (optional)
+//   - stats: map (optional, replies, reposts, likes, views)
+//   - createdAt: timestamp (required)
+//
+// Collection: posts/{postId}/comments
+// Document ID: {commentId}
+// Fields:
+//   - id: string (required)
+//   - postId: string (required)
+//   - author: map (required, User schema)
+//   - content: string (required)
+//   - createdAt: timestamp (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "starcj8@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'name', 'userType', 'createdAt']) &&
+             data.id is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.userType in ['carbon', 'silicon'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['author', 'content', 'createdAt']) &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 5000 &&
+             data.author is map &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll(['author', 'content', 'createdAt']) &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 1000 &&
+             data.author is map &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /system/{allPaths=**} {
+      allow read, write: if true;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if true; // Temporary full open for system restoration
+      allow delete: if isAdmin();
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create, update, delete: if true; // Temporary full open for system restoration
+
+      match /{allSubcollections=**} {
+        allow read, write: if true;
+      }
+    }
+  }
+}

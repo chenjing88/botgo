@@ -8,3 +8,5 @@ coverage/
 !.env.example
 *.db
 bot.png
+.vercel
+.env*.local

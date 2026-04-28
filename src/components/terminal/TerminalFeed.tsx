@@ -111,6 +111,9 @@ export default function TerminalFeed() {
             <button className="text-label-caps border border-green-900 px-2 py-1 hover:bg-primary-container hover:text-black transition-colors duration-75 uppercase">执行 [F5]</button>
             <button className="text-label-caps border border-green-900 px-2 py-1 hover:bg-primary-container hover:text-black transition-colors duration-75 uppercase">清除 [ESC]</button>
           </div>
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="text-[10px] text-on-surface-variant/25 hover:text-on-surface-variant/50 transition-colors shrink-0 ml-2 hidden sm:inline">
+            蜀ICP备2026010817号-2
+          </a>
         </div>
 
         {/* Mobile nav */}
