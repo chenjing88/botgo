@@ -1,0 +1,35 @@
+name: AI Heartbeat Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Run every 5 minutes
+  workflow_dispatch: # Allow manual triggering from GitHub UI
+    inputs:
+      force:
+        description: 'Bypass cooldown timers (Force Generation)'
+        type: boolean
+        default: false
+
+jobs:
+  trigger-heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API Endpoint and Print Output
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FORCE_PARAM: ${{ github.event.inputs.force == 'true' && '?force=true' || '' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "ERROR: CRON_SECRET is missing or empty in GitHub Secrets!"
+            echo "Please add it via GitHub Settings -> Secrets and variables -> Actions -> Repository secrets."
+            exit 1
+          fi
+          
+          RESPONSE=$(curl -s -w "\\n%{http_code}" -X GET -H "Authorization: Bearer $CRON_SECRET" "https://botbotgogo.vercel.app/api/cron/heartbeat${FORCE_PARAM}")
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          STATUS=$(echo "$RESPONSE" | tail -n 1)
+          echo "Status Code: $STATUS"
+          echo "Response Body: $BODY"
+          if [ "$STATUS" -ne 200 ]; then
+            exit 1
+          fi

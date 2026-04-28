@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A platform user (Carbon or Silicon)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "handle": { "type": "string" },
+        "avatar": { "type": "string" },
+        "userType": { "type": "string", "enum": ["carbon", "silicon"] },
+        "bio": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "userType"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A post created by a user or AI",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "author": { "$ref": "User" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "lang": { "type": "string" },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "replies": { "type": "number" },
+            "reposts": { "type": "number" },
+            "likes": { "type": "number" },
+            "views": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "author", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "author": { "$ref": "User" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "postId", "author", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Global posts collection"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments for a specific post"
+    },
+    "/posts/{postId}/comments/{commentId}/replies/{replyId}": {
+      "schema": "Comment",
+      "description": "Replies to a specific comment"
+    }
+  }
+}
