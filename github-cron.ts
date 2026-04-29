@@ -13,24 +13,29 @@
  *   FIRESTORE_DATABASE_ID (可选) — 命名数据库 ID，不设则用 Web SDK 配置中的值或默认
  */
 
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import {
+  getFirestore,
+  FieldValue,
+  Firestore,
+} from 'firebase-admin/firestore';
 import { AI_RESIDENTS } from './src/data/residents.js';
-import { AIBot } from './src/data/residents.js';
+import type { AIBot } from './src/data/residents.js';
 import { getLatestNews } from './src/data/news-sources.js';
 
 // ============================================================================
 // 初始化 Firebase Admin SDK
 // ============================================================================
 
-function initFirebase(): admin.firestore.Firestore {
+function initFirebase(): Firestore {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT 环境变量未设置');
 
   const serviceAccount = JSON.parse(raw);
 
-  if (admin.apps.length === 0) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+  if (getApps().length === 0) {
+    initializeApp({
+      credential: cert(serviceAccount),
     });
   }
 
@@ -41,8 +46,8 @@ function initFirebase(): admin.firestore.Firestore {
     '(default)';
 
   return databaseId !== '(default)'
-    ? admin.firestore(databaseId)
-    : admin.firestore();
+    ? getFirestore(databaseId)
+    : getFirestore();
 }
 
 // ============================================================================
@@ -133,7 +138,7 @@ interface HeartbeatState {
 }
 
 async function getHeartbeatState(
-  db: admin.firestore.Firestore,
+  db: Firestore,
 ): Promise<HeartbeatState> {
   const snap = await db.collection('system').doc('heartbeat').get();
   if (!snap.exists) {
@@ -164,7 +169,7 @@ function checkTasks(state: HeartbeatState): {
 }
 
 async function updateTimer(
-  db: admin.firestore.Firestore,
+  db: Firestore,
   type: 'news' | 'resident' | 'comment',
   status: 'success' | 'failed' | 'skipped',
   details?: any,
@@ -176,7 +181,7 @@ async function updateTimer(
   };
   const field = fieldMap[type];
   const ref = db.collection('system').doc('heartbeat');
-  const now = admin.firestore.FieldValue.serverTimestamp();
+  const now = FieldValue.serverTimestamp();
 
   // 成功后更新时间戳，失败/跳过不更新冷却（下次立即重试）
   if (status === 'success') {
@@ -217,7 +222,7 @@ async function updateTimer(
 // 任务主逻辑
 // ============================================================================
 
-async function runHeartbeat(db: admin.firestore.Firestore) {
+async function runHeartbeat(db: Firestore) {
   const timestamp = new Date().toISOString();
   console.log(`\n⏰ [${timestamp}] 心跳检查`);
 
@@ -274,7 +279,7 @@ async function runHeartbeat(db: admin.firestore.Firestore) {
         if (content && content.trim()) {
           const postRef = await db.collection('posts').add({
             lang: 'zh',
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
             author: {
               id: bot.uid,
               name: bot.displayName,
@@ -348,7 +353,7 @@ async function runHeartbeat(db: admin.firestore.Firestore) {
       if (content && content.trim()) {
         const postRef = await db.collection('posts').add({
           lang: bot.lang === 'en' ? 'en' : 'zh',
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
           author: {
             id: bot.uid,
             name: bot.displayName,
@@ -490,7 +495,7 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
                   },
                   content: commentContent.trim(),
                   likes: 0,
-                  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                  createdAt: FieldValue.serverTimestamp(),
                 },
               );
               batchCount++;
@@ -508,7 +513,7 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
         if (batchCount > 0) {
           batch.update(db.collection('posts').doc(target.id), {
             'stats.replies':
-              admin.firestore.FieldValue.increment(batchCount),
+              FieldValue.increment(batchCount),
           });
           await batch.commit();
           totalGen += batchCount;
