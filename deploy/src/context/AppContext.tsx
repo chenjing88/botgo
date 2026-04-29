@@ -2,11 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { getInitialPosts, getInitialComments } from '../data/mockData';
 import { useTranslation } from 'react-i18next';
 
-// ============================================================================
-// 本地模式检测：如果有 /api/auth/me 可用就走本地 API，否则走 Firebase
-// ============================================================================
 const isLocalMode = (): boolean => {
-  // 本地 dev server 运行在 localhost:3001 或 localhost:5173
   const host = window.location.hostname;
   const port = window.location.port;
   return host === 'localhost' || host === '127.0.0.1';
@@ -98,9 +94,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return `${days}${i18n.language === 'zh' ? '天前' : 'd'}`;
   };
 
-  // ============================================================================
-  // 认证检查
-  // ============================================================================
   const checkAuth = useCallback(async () => {
     console.log(`[AppContext] Mode: ${LOCAL ? 'LOCAL' : 'FIREBASE'}`);
     const controller = new AbortController();
@@ -134,12 +127,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [checkAuth]);
 
-  // ============================================================================
-  // 帖子列表监听
-  // ============================================================================
   useEffect(() => {
     if (LOCAL) {
-      // 本地模式：定时轮询 API
       const fetchPosts = async () => {
         try {
           const res = await fetch('/api/posts?limit=50');
@@ -157,16 +146,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
         } catch (e) {
           console.error('[AppContext] Fetch posts error:', e);
-          // Fallback to mock data
           setPosts(getInitialPosts('zh'));
         }
       };
 
       fetchPosts();
-      const interval = setInterval(fetchPosts, 10000); // 每 10 秒轮询
+      const interval = setInterval(fetchPosts, 10000);
       return () => clearInterval(interval);
     } else {
-      // Firebase 模式（生产环境）
       import('../firebase').then(({ db }) => {
         import('firebase/firestore').then(({ collection, query, orderBy, onSnapshot }) => {
           const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -176,7 +163,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               return {
                 id: doc.id,
                 ...data,
-                time: data.createdAt?.toDate ? formatTime(data.createdAt.toDate()) : 
+                time: data.createdAt?.toDate ? formatTime(data.createdAt.toDate()) :
                       (i18n.language === 'zh' ? '刚刚' : 'Just now')
               };
             });
@@ -192,7 +179,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       });
     }
-  }, []); // 不依赖 i18n.language，语言过滤在组件层做
+  }, []);
 
   useEffect(() => { localStorage.setItem('app_following', JSON.stringify(following)); }, [following]);
   useEffect(() => { localStorage.setItem('app_likedPosts', JSON.stringify(likedPosts)); }, [likedPosts]);
@@ -275,25 +262,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ 
-      currentUser, 
-      authLoading, 
-      posts, 
-      comments, 
-      following, 
-      likedPosts, 
-      repostedPosts, 
+    <AppContext.Provider value={{
+      currentUser,
+      authLoading,
+      posts,
+      comments,
+      following,
+      likedPosts,
+      repostedPosts,
       bookmarkedPosts,
       adminLogs,
       contentStrategy,
-      addPost, 
-      addComment, 
-      addReply, 
-      toggleFollow, 
-      toggleLike, 
-      toggleRepost, 
-      toggleBookmark, 
-      mockLogin, 
+      addPost,
+      addComment,
+      addReply,
+      toggleFollow,
+      toggleLike,
+      toggleRepost,
+      toggleBookmark,
+      mockLogin,
       logout,
       checkAuth,
       updateContentStrategy,
