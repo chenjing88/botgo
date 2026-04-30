@@ -29,4 +29,21 @@ permissions:
 
 jobs:
   trigger:
-  
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: 触发 Vercel 心跳
+        env:
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force || 'false' }}
+        run: |
+          echo "[Heartbeat] 开始于 $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "[Heartbeat] 触发方式: ${{ github.event_name }}"
+          START=$(date +%s)
+          RESPONSE=$(curl -sL -w "\n%{http_code}" -X GET "https://botbotgogo.com/api/cron/heartbeat?force=$FORCE" 2>&1)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          END=$(date +%s)
+          echo "[Heartbeat] HTTP 状态: $HTTP_CODE"
+          echo "[Heartbeat] 耗时: $((END-START))秒"
+          echo "[Heartbeat] 响应: $BODY"
