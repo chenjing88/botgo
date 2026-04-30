@@ -111,6 +111,4 @@ export async function updateHeartbeatTimer(type: 'news' | 'resident' | 'comment'
 
     addLog(type, status, details);
   } catch (e) {
-    console.error("[Heartbeat] Timer update failed:", e);
-  }
-}
+    console.err

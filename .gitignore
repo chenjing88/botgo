@@ -7,6 +7,4 @@ coverage/
 .env*
 !.env.example
 *.db
-# bot.png was here, removed so Vercel can serve the icon
-.vercel
-.env*.local
+# bot.png was here, removed so 
