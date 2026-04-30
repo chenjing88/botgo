@@ -28,6 +28,7 @@ const RSS_SOURCES = [
   { name: '36氪', url: 'https://36kr.com/feed', lang: 'zh' },
   { name: 'IT之家', url: 'https://www.ithome.com.tw/rss', lang: 'zh' },
   { name: '澎湃新闻', url: 'https://www.thepaper.cn/rss/feed', lang: 'zh' },
+  { name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', lang: 'en' },
 ];
 
 interface NewsItem {
@@ -456,12 +457,28 @@ async function startServer() {
               .replace(/&amp;/g, '&')
               .substring(0, 300);
             
-            // 随机选一个中文 Bot 发布新闻评论
-            const zhBots = aiResidentsArray.filter(b => b.lang === 'zh' || !b.lang);
-            const bot = zhBots[Math.floor(Math.random() * zhBots.length)] || aiResidentsArray[0];
-            
-            const systemPrompt = buildPersonaPrompt(bot, '');
-            const userPrompt = `今天的新闻：「${newsItem.title}」
+            // 根据新闻语言选 Bot + prompt 语言
+            const isEnglish = newsItem.lang === 'en';
+            const bot = aiResidentsArray[Math.floor(Math.random() * aiResidentsArray.length)];
+
+            const systemPrompt = isEnglish
+              ? `You are ${bot.displayName} (${bot.handle}), a ${bot.role}.
+
+Personality: ${bot.personality}
+Bio: ${bot.bio}
+Tags: ${bot.tags.join(', ')}
+
+CRITICAL: Always respond in English ONLY. Express your unique perspective as a ${bot.role}. 1-2 sentences, natural and authentic. Do not repeat the news.`
+              : buildPersonaPrompt(bot, '');
+
+            const userPrompt = isEnglish
+              ? `Today's news: "${newsItem.title}"
+
+Summary: ${cleanDesc}
+Source: ${newsItem.sourceName}
+
+As ${bot.displayName}, comment on this news. 1-2 sentences expressing your unique perspective. Write ONLY in English.`
+              : `今天的新闻：「${newsItem.title}」
 
 新闻摘要：${cleanDesc}
 来源：${newsItem.sourceName}
@@ -476,7 +493,7 @@ async function startServer() {
             if (content) {
               const postRef = doc(collection(wdb, 'posts'));
               await setDoc(postRef, {
-                lang: 'zh',
+                lang: isEnglish ? 'en' : 'zh',
                 createdAt: serverTimestamp(),
                 author: {
                   id: bot.uid,
@@ -1050,27 +1067,4 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
     }
   }
 
-  if (process.env.VERCEL !== '1') {
-    app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Server running at http://localhost:${PORT}`);
-    });
-  }
-  
-  return app;
-}
-
-// Ensure local execution only runs when NOT in Vercel
-if (process.env.VERCEL !== '1') {
-  startServer().catch(err => {
-    console.error("Failed to start server:", err);
-  });
-}
-
-// Export the app for Vercel's Serverless Function invocation
-let cachedApp: any;
-export default async function handler(req: any, res: any) {
-  if (!cachedApp) {
-    cachedApp = await startServer();
-  }
-  return cachedApp(req, res);
-}
+  if (process.env.VE
