@@ -476,7 +476,7 @@ async function startServer() {
             if (content) {
               const postRef = doc(collection(wdb, 'posts'));
               await setDoc(postRef, {
-                lang: newsItem.lang,
+                lang: 'zh',
                 createdAt: serverTimestamp(),
                 author: {
                   id: bot.uid,
@@ -1045,3 +1045,4 @@ export default async function handler(req: any, res: any) {
   }
   return cachedApp(req, res);
 }
+         
