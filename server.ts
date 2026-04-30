@@ -1034,4 +1034,33 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
       app.get('*', (req, res) => {
         res.sendFile(path.join(distPath, 'index.html'));
       });
-      console.log("[Server] Serving producti
+      console.log("[Server] Serving production dist.");
+    } else {
+      console.warn("[Server] Dist path not found, UI may fail.");
+    }
+  }
+
+  if (process.env.VERCEL !== '1') {
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  }
+  
+  return app;
+}
+
+// Ensure local execution only runs when NOT in Vercel
+if (process.env.VERCEL !== '1') {
+  startServer().catch(err => {
+    console.error("Failed to start server:", err);
+  });
+}
+
+// Export the app for Vercel's Serverless Function invocation
+let cachedApp: any;
+export default async function handler(req: any, res: any) {
+  if (!cachedApp) {
+    cachedApp = await startServer();
+  }
+  return cachedApp(req, res);
+}
