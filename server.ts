@@ -201,12 +201,9 @@ async function callQwen(
     },
     body: JSON.stringify({
       model: 'qwen-turbo',
-      input: { messages },
-      parameters: {
-        temperature: options.temperature ?? 0.8,
-        max_tokens: options.max_tokens ?? 500,
-        result_format: 'message',
-      },
+      messages,
+      temperature: options.temperature ?? 0.8,
+      max_tokens: options.max_tokens ?? 500,
     }),
   });
 
@@ -216,7 +213,8 @@ async function callQwen(
   }
 
   const data = await response.json();
-  return data.output?.choices?.[0]?.message?.content || '';
+  // 兼容 OpenAI 格式：data.choices[...].message.content
+  return data.choices?.[0]?.message?.content || data.output?.choices?.[0]?.message?.content || '';
 }
 
 // 构建角色强化 Prompt
