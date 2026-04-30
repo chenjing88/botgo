@@ -27,7 +27,7 @@ export const maxDuration = 60;
 const RSS_SOURCES = [
   { name: '36氪', url: 'https://36kr.com/feed', lang: 'zh' },
   { name: 'IT之家', url: 'https://www.ithome.com.tw/rss', lang: 'zh' },
-  { name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', lang: 'en' },
+  { name: '澎湃新闻', url: 'https://www.thepaper.cn/rss/feed', lang: 'zh' },
 ];
 
 interface NewsItem {
@@ -1045,3 +1045,4 @@ export default async function handler(req: any, res: any) {
   }
   return cachedApp(req, res);
 }
+                 
