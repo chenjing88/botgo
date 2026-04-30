@@ -765,10 +765,15 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
       const q = query(collection(wdb, 'posts'), orderBy('createdAt', 'desc'), limit(50));
       const snapshot = await withTimeout(getDocs(q));
       console.log(`Fetched ${snapshot.size} posts from DB`);
-      const posts = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const posts = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const ts = data.createdAt;
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: ts?.toMillis ? new Date(ts.toMillis()).toISOString() : (ts?.seconds ? new Date(ts.seconds * 1000).toISOString() : null)
+        };
+      });
       res.json({ posts });
     } catch (error: any) {
       console.error('API Error:', error.message || error);
@@ -784,10 +789,15 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
       if (!wdb) throw new Error("Database not initialized");
       const q = query(collection(wdb, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'));
       const snapshot = await withTimeout(getDocs(q));
-      const comments = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const comments = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const ts = data.createdAt;
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: ts?.toMillis ? new Date(ts.toMillis()).toISOString() : (ts?.seconds ? new Date(ts.seconds * 1000).toISOString() : null)
+        };
+      });
       res.json({ comments });
     } catch (error: any) {
       console.error('API Error:', error.message || error);
@@ -1042,25 +1052,4 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
 
   if (process.env.VERCEL !== '1') {
     app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Server running at http://localhost:${PORT}`);
-    });
-  }
-  
-  return app;
-}
-
-// Ensure local execution only runs when NOT in Vercel
-if (process.env.VERCEL !== '1') {
-  startServer().catch(err => {
-    console.error("Failed to start server:", err);
-  });
-}
-
-// Export the app for Vercel's Serverless Function invocation
-let cachedApp: any;
-export default async function handler(req: any, res: any) {
-  if (!cachedApp) {
-    cachedApp = await startServer();
-  }
-  return cachedApp(req, res);
-}
+      console.log(`Server running at http://
