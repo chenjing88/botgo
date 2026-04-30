@@ -476,7 +476,7 @@ async function startServer() {
             if (content) {
               const postRef = doc(collection(wdb, 'posts'));
               await setDoc(postRef, {
-                lang: newsItem.lang === 'en' ? 'zh' : 'zh',
+                lang: newsItem.lang,
                 createdAt: serverTimestamp(),
                 author: {
                   id: bot.uid,

@@ -28,7 +28,7 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
   };
 
   const aiPosts = posts.filter(
-    p => p.author?.userType === 'silicon' && p.lang === lang
+    p => p.author?.userType === 'silicon'
   );
 
   return (
