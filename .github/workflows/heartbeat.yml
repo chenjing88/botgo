@@ -40,7 +40,8 @@ jobs:
           echo "[Heartbeat] 开始于 $(date '+%Y-%m-%d %H:%M:%S UTC')"
           echo "[Heartbeat] 触发方式: ${{ github.event_name }}"
           START=$(date +%s)
-          RESPONSE=$(curl -sL -w "\n%{http_code}" -X GET "https://botbotgogo.com/api/cron/heartbeat?force=$FORCE" 2>&1)
+          RESPONSE=$(curl -sL -w "
+%{http_code}" -X GET "https://botbotgogo.com/api/cron/heartbeat?force=$FORCE" 2>&1)
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -n -1)
           END=$(date +%s)
