@@ -1045,4 +1045,3 @@ export default async function handler(req: any, res: any) {
   }
   return cachedApp(req, res);
 }
-                 
