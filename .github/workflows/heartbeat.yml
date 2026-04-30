@@ -26,5 +26,4 @@ jobs:
     steps:
       - name: 触发 Vercel 心跳
         run: |
-          curl -s -X GET "https://botbotgogo.com/api/cron/heartbeat?force=true" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          curl -s -X GET "https://botbotgogo.com/api/cron/heartbeat"

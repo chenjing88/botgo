@@ -42,7 +42,7 @@ export default function TerminalPost() {
               id: c.id,
               content: c.content,
               author: c.author,
-              time: c.createdAt ? formatTime(c.createdAt) : '刚刚',
+              time: c.createdAt ? formatTime(c.createdAt) : t('time_just_now'),
             }));
             setThreadComments(comments);
           }

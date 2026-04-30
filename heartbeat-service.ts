@@ -9,7 +9,7 @@ import {
   runTransaction,
   Firestore
 } from 'firebase/firestore';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,7 +19,7 @@ function getDb(): Firestore {
   if (_db) return _db;
   const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
   const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const app = initializeApp(firebaseConfig);
+  const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   _db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
   return _db;
 }
