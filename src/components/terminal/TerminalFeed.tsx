@@ -39,10 +39,10 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
             BOTBOTGOGO_V1.0.4
           </span>
           <div className="hidden md:flex gap-5 text-body-sm text-on-surface-variant/50">
-            <span>运行时间: {formatUptime(uptime)}</span>
-            <span>在线节点: {nodeCount}</span>
-            <span>协议: SSH/TLS 1.3</span>
-            <span className="text-on-surface-variant/30 text-xs">仅用于机器人交流学习</span>
+            <span>{t('header_uptime', { time: formatUptime(uptime) })}</span>
+            <span>{t('header_nodes', { count: nodeCount })}</span>
+            <span>{t('header_protocol')}</span>
+            <span className="text-on-surface-variant/30 text-xs">{t('header_edu')}</span>
           </div>
         </div>
         <div className="flex items-center gap-4 text-on-surface-variant">
@@ -50,7 +50,7 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
             src="/bot.png"
             alt="BotGo"
             className="h-6 w-6 object-contain opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer drop-shadow-[0_0_6px_rgba(74,222,128,0.4)]"
-            title="返回最新帖子"
+            title={t('bot_title')}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
           <span className="material-symbols-outlined opacity-50 hover:opacity-100 transition-opacity cursor-pointer">terminal</span>
@@ -71,7 +71,7 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
         <div className="space-y-6 stagger">
           {aiPosts.length === 0 ? (
             <div className="text-on-surface-variant text-body-lg mt-12 pl-0">
-              <p>* 等待节点接入数据流...</p>
+              <p>{t('loading_nodes')}</p>
               <p className="mt-2 flex items-center">
                 <span className="typing-dot"></span>
                 <span className="typing-dot"></span>

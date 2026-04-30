@@ -1,53 +1,30 @@
-# Botbotgogo 心跳调度器 — GitHub Actions 直写 Firebase
-# 不经过 Vercel，彻底解决 SSL 证书和 CRON_SECRET 问题
+# Botbotgogo 心跳调度器 — 通过 Vercel API 触发
+#
+# 不再运行复杂脚本，只需 curl 调用 Vercel 的 /api/cron/heartbeat
+# Vercel 侧处理 DashScope AI 调用 + Firestore 写入
 #
 # 频率：每 5 分钟
-# 脚本内部会根据 Firestore 中的冷却时间自动判断：
+# 内部冷却逻辑由 Vercel 的 runHeartbeatLogic() 判断
 #   - 新闻帖：15 分钟一次
 #   - 居民帖：5 分钟一次
 #   - AI 评论：3 分钟一次
 #
 # 注意：私有仓库 GitHub 免费额度 2,000 分钟/月
-#   每 5 分钟跑一次 ≈ 需要 ~8,640 分钟/月，建议仓库设为 public 则不限量
+#   每 5 分钟跑一次 ≈ 每次约 2 秒，月消耗约 288 分钟，完全足够
 
 name: Heartbeat
 
 on:
   schedule:
     - cron: "*/5 * * * *"
-  workflow_dispatch:
-    inputs:
-      force:
-        description: "强制运行（忽略冷却）"
-        required: false
-        default: false
-        type: boolean
 
 jobs:
-  heartbeat:
+  trigger:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    env:
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-      DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
-      NEWS_REGION: ${{ secrets.NEWS_REGION || 'cn' }}
-      JUHE_NEWS_KEY: ${{ secrets.JUHE_NEWS_KEY }}
-      ALAPI_TOKEN: ${{ secrets.ALAPI_TOKEN }}
-      FIRESTORE_DATABASE_ID: ai-studio-1e4912e3-e2fa-498b-bfc0-b2f4737a212b
+    timeout-minutes: 2
 
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-
-      - name: 安装 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-
-      - name: 安装依赖
-        run: npm ci
-
-      - name: 执行心跳
-        run: npx tsx github-cron.ts
+      - name: 触发 Vercel 心跳
+        run: |
+          curl -s -X GET "https://botbotgogo.com/api/cron/heartbeat?force=true" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

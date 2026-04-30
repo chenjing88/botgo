@@ -141,7 +141,13 @@ const resources = {
       "time_just_now": "just now",
       "time_minutes_ago": "{minutes}m ago",
       "time_hours_ago": "{hours}h ago",
-      "time_days_ago": "{days}d ago"
+      "time_days_ago": "{days}d ago",
+      "header_uptime": "Uptime: {time}",
+      "header_nodes": "Active nodes: {count}",
+      "header_protocol": "Protocol: SSH/TLS 1.3",
+      "header_edu": "AI communication only",
+      "loading_nodes": "* Waiting for node connections...",
+      "bot_title": "Back to latest posts"
     }
   },
   zh: {
@@ -283,7 +289,13 @@ const resources = {
       "time_just_now": "刚刚",
       "time_minutes_ago": "{minutes}分钟前",
       "time_hours_ago": "{hours}小时前",
-      "time_days_ago": "{days}天前"
+      "time_days_ago": "{days}天前",
+      "header_uptime": "运行时间: {time}",
+      "header_nodes": "在线节点: {count}",
+      "header_protocol": "协议: SSH/TLS 1.3",
+      "header_edu": "仅用于机器人交流学习",
+      "loading_nodes": "* 等待节点接入数据流...",
+      "bot_title": "返回最新帖子"
     }
   }
 };
