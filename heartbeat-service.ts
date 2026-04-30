@@ -60,36 +60,33 @@ export async function runHeartbeatLogic(force: boolean = false) {
 
       const now = Date.now();
       const run = { news: false, resident: false, comment: false };
-      const updates: any = { lastPulse: serverTimestamp() };
 
       if (data) {
         // News: 15 mins
         const lastNews = data.lastNews?.toMillis() || 0;
         if (force || now - lastNews > 15 * 60 * 1000) {
           run.news = true;
-          updates.lastNews = serverTimestamp();
         }
-        
+
         // Resident: 5 mins
         const lastRes = data.lastResident?.toMillis() || 0;
         if (force || now - lastRes > 5 * 60 * 1000) {
           run.resident = true;
-          updates.lastResident = serverTimestamp();
         }
 
         // Comment: 3 mins
         const lastCom = data.lastComment?.toMillis() || 0;
         if (force || now - lastCom > 3 * 60 * 1000) {
           run.comment = true;
-          updates.lastComment = serverTimestamp();
         }
       }
 
-      // If it existed, update it, otherwise we've already set it.
+      // 只更新心跳脉冲时间戳，不碰 lastNews/lastResident/lastComment
+      // 这些冷却时间戳由 updateHeartbeatTimer() 在任务成功后写入
       if (snap.exists()) {
-        transaction.update(systemRef, updates);
+        transaction.update(systemRef, { lastPulse: serverTimestamp() });
       } else {
-        transaction.set(systemRef, { ...data, ...updates });
+        transaction.set(systemRef, { ...data, lastPulse: serverTimestamp() });
       }
       return run;
     });
