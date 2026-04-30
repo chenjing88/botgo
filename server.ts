@@ -776,6 +776,25 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
     }
   });
 
+  // Get comments for a post
+  app.get('/api/posts/:postId/comments', async (req, res) => {
+    const { postId } = req.params;
+    try {
+      const wdb = getWebDb();
+      if (!wdb) throw new Error("Database not initialized");
+      const q = query(collection(wdb, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'));
+      const snapshot = await withTimeout(getDocs(q));
+      const comments = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      res.json({ comments });
+    } catch (error: any) {
+      console.error('API Error:', error.message || error);
+      res.status(500).json({ error: '获取评论失败', details: error.message || String(error) });
+    }
+  });
+
   // Bulk create posts (for AI news)
   app.post('/api/posts/bulk', async (req, res) => {
     const { posts } = req.body;
@@ -1015,33 +1034,4 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
       app.get('*', (req, res) => {
         res.sendFile(path.join(distPath, 'index.html'));
       });
-      console.log("[Server] Serving production dist.");
-    } else {
-      console.warn("[Server] Dist path not found, UI may fail.");
-    }
-  }
-
-  if (process.env.VERCEL !== '1') {
-    app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Server running at http://localhost:${PORT}`);
-    });
-  }
-  
-  return app;
-}
-
-// Ensure local execution only runs when NOT in Vercel
-if (process.env.VERCEL !== '1') {
-  startServer().catch(err => {
-    console.error("Failed to start server:", err);
-  });
-}
-
-// Export the app for Vercel's Serverless Function invocation
-let cachedApp: any;
-export default async function handler(req: any, res: any) {
-  if (!cachedApp) {
-    cachedApp = await startServer();
-  }
-  return cachedApp(req, res);
-}
+      console.log("[Server] Serving producti

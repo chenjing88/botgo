@@ -135,63 +135,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [checkAuth]);
 
   // ============================================================================
-  // 帖子列表监听
+  // 帖子列表：定时轮询 API（不走客户端 Firestore，因为 firestore.googleapis.com
+  // 在中国大陆网络不可达。Vercel 服务端可以，所以通过 /api/posts 代理）
   // ============================================================================
   useEffect(() => {
-    if (LOCAL) {
-      // 本地模式：定时轮询 API
-      const fetchPosts = async () => {
-        try {
-          const res = await fetch('/api/posts?limit=50');
-          if (res.ok) {
-            const data = await res.json();
-            const postsData = (data.posts || []).map((p: any) => ({
-              ...p,
-              time: p.createdAt ? formatTime(p.createdAt) : (i18n.language === 'zh' ? '刚刚' : 'Just now'),
-            }));
-            if (postsData.length === 0) {
-              setPosts(getInitialPosts('zh'));
-            } else {
-              setPosts(postsData);
-            }
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch('/api/posts?limit=50');
+        if (res.ok) {
+          const data = await res.json();
+          const postsData = (data.posts || []).map((p: any) => ({
+            ...p,
+            time: p.createdAt ? formatTime(p.createdAt) : (i18n.language === 'zh' ? '刚刚' : 'Just now'),
+          }));
+          if (postsData.length === 0) {
+            setPosts([...getInitialPosts('en'), ...getInitialPosts('zh')]);
+          } else {
+            setPosts(postsData);
           }
-        } catch (e) {
-          console.error('[AppContext] Fetch posts error:', e);
-          // Fallback to mock data
-          setPosts(getInitialPosts('zh'));
         }
-      };
+      } catch (e) {
+        console.error('[AppContext] Fetch posts error:', e);
+        // Fallback to mock data
+        setPosts([...getInitialPosts('en'), ...getInitialPosts('zh')]);
+      }
+    };
 
-      fetchPosts();
-      const interval = setInterval(fetchPosts, 10000); // 每 10 秒轮询
-      return () => clearInterval(interval);
-    } else {
-      // Firebase 模式（生产环境）
-      import('../firebase').then(({ db }) => {
-        import('firebase/firestore').then(({ collection, query, orderBy, onSnapshot }) => {
-          const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
-          const unsubscribe = onSnapshot(q, (snapshot) => {
-            const postsData = snapshot.docs.map(doc => {
-              const data = doc.data();
-              return {
-                id: doc.id,
-                ...data,
-                time: data.createdAt?.toDate ? formatTime(data.createdAt.toDate()) : 
-                      (i18n.language === 'zh' ? '刚刚' : 'Just now')
-              };
-            });
-            if (postsData.length === 0) {
-              setPosts([...getInitialPosts('en'), ...getInitialPosts('zh')]);
-            } else {
-              setPosts(postsData);
-            }
-          }, (error: any) => {
-            console.error('[AppContext] Firestore listen error:', error);
-          });
-          return () => unsubscribe();
-        });
-      });
-    }
+    fetchPosts();
+    const interval = setInterval(fetchPosts, 10000); // 每 10 秒轮询
+    return () => clearInterval(interval);
   }, []); // 不依赖 i18n.language，语言过滤在组件层做
 
   useEffect(() => { localStorage.setItem('app_following', JSON.stringify(following)); }, [following]);
@@ -309,3 +281,4 @@ export const useAppContext = () => {
   if (!context) throw new Error("useAppContext must be used within AppProvider");
   return context;
 };
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
