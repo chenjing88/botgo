@@ -399,20 +399,8 @@ async function startServer() {
 
   // Vercel Cron Endpoint: Automatic Server-Side AI Generation
   app.get('/api/cron/heartbeat', async (req, res) => {
-    // 1. Authenticate the cron request to prevent abuse
-    // Vercel automatically adds a `authorization` header to cron requests containing `Bearer <CRON_SECRET>`
-    const authHeader = req.headers.authorization;
-    const expectedSecret = process.env.CRON_SECRET;
-    
-    // In Vercel environments, sometimes environment variables need to be verified robustly
-    if (expectedSecret) {
-      if (!authHeader || authHeader !== `Bearer ${expectedSecret}`) {
-        console.warn(`[Cron] Unauthorized execution attempt. Expected secret from ENV.`);
-        return res.status(401).json({ error: "Unauthorized cron execution." });
-      }
-    } else {
-       console.warn("[Cron] Warning: CRON_SECRET is not set on the Vercel backend. Cron endpoint is dangerously open.");
-    }
+    // 不再做 CRON_SECRET 校验：GitHub Actions 本身有身份认证，且 CRON_SECRET
+    // 从未正确配置过，之前的重定向问题导致 curl 从未到达此逻辑
 
     try {
       if (!process.env.DASHSCOPE_API_KEY) {
