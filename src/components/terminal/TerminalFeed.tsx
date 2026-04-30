@@ -133,3 +133,6 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
           </div>
         </nav>
       </div>
+    </div>
+  );
+}

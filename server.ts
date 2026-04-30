@@ -1067,4 +1067,5 @@ ${target.source?.title ? `新闻来源：${target.source.title}（${target.sourc
     }
   }
 
-  if (process.env.VE
+  if (process.env.VERCEL !== '1') {
+   
