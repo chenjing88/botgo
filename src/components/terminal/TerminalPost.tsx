@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../context/AppContext';
 import TerminalMessage from './TerminalMessage';
 
 const LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 export default function TerminalPost() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { posts } = useAppContext();
@@ -21,17 +23,16 @@ export default function TerminalPost() {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (minutes < 1) return '刚刚';
-    if (minutes < 60) return `${minutes}分钟前`;
-    if (hours < 24) return `${hours}小时前`;
-    return `${days}天前`;
+    if (minutes < 1) return t('time_just_now');
+    if (minutes < 60) return t('time_minutes_ago', { minutes });
+    if (hours < 24) return t('time_hours_ago', { hours });
+    return t('time_days_ago', { days });
   };
 
   useEffect(() => {
     if (!id) return;
 
     if (LOCAL) {
-      // 本地模式：通过 API 获取评论
       const fetchComments = async () => {
         try {
           const res = await fetch(`/api/posts/${id}`);
@@ -51,7 +52,6 @@ export default function TerminalPost() {
       };
       fetchComments();
     } else {
-      // Firebase 模式
       import('../../firebase').then(({ db }) => {
         import('firebase/firestore').then(({ collection, query, orderBy, onSnapshot }) => {
           const q = query(collection(db, 'posts', id, 'comments'), orderBy('createdAt', 'asc'));
@@ -75,15 +75,14 @@ export default function TerminalPost() {
   if (!post) {
     return (
       <div className="min-h-screen bg-background text-primary font-code-md grid-bg pt-20 px-4">
-        <p className="text-on-surface-variant">[ERROR] 节点数据未找到</p>
-        <button onClick={() => navigate(-1)} className="text-primary-fixed-dim mt-4 hover:underline">&lt; 返回数据流</button>
+        <p className="text-on-surface-variant">{t('err_post_not_found')}</p>
+        <button onClick={() => navigate(-1)} className="text-primary-fixed-dim mt-4 hover:underline">{t('back_to_feed')}</button>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background text-primary font-code-md grid-bg">
-      {/* Header */}
       <header className="fixed top-0 left-0 w-full z-50 bg-black border-b border-green-900/30 flex justify-between items-center px-5 py-3 font-code-md">
         <div className="flex items-center gap-4">
           <button
@@ -93,33 +92,29 @@ export default function TerminalPost() {
             &lt; BACK
           </button>
           <span className="text-label-caps text-on-surface-variant/40 border-l border-green-900/30 pl-3">
-            THREAD::{id?.substring(0, 8)}
+            {t('thread_label', { id: id?.substring(0, 8) })}
           </span>
         </div>
-        <span className="text-label-caps text-on-surface-variant/40">深度解析模式</span>
+        <span className="text-label-caps text-on-surface-variant/40">{t('thread_title')}</span>
       </header>
 
-      {/* Thread content */}
       <main className="pt-20 pb-24 px-5 md:px-xl max-w-container-max mx-auto border-x border-green-900/10 min-h-screen">
 
-        {/* Original post */}
         <div className="mt-8 mb-12 fade-in topic-container">
           <TerminalMessage post={post} mode="detail" />
         </div>
 
-        {/* Thread separator */}
         <div className="flex items-center gap-4 mb-6">
           <span className="text-label-caps text-on-surface-variant/50 font-bold tracking-wider">
-            ── 跟帖 [{threadComments.length}] ──
+            {t('thread_replies', { count: threadComments.length })}
           </span>
           <div className="flex-1 h-px bg-green-900/15"></div>
         </div>
 
-        {/* Comments */}
         <div className="stagger">
           {threadComments.length === 0 ? (
             <div className="text-on-surface-variant text-body-lg mt-8 pl-0 opacity-50">
-              <p>* 暂无回复节点...</p>
+              <p>{t('no_replies')}</p>
               <p className="mt-2 flex items-center">
                 <span className="typing-dot"></span>
                 <span className="typing-dot"></span>
@@ -155,21 +150,19 @@ export default function TerminalPost() {
           )}
         </div>
 
-        {/* Footer */}
         <div className="mt-12 pt-5 border-t border-green-900/20 text-body-sm text-on-surface-variant/40 space-y-1.5">
-          <p>* 线程 ID: {id}</p>
-          <p>* 回复节点数: {threadComments.length}</p>
-          <p>* 线程状态: OPEN</p>
+          <p>{t('thread_id', { id })}</p>
+          <p>{t('thread_reply_count', { count: threadComments.length })}</p>
+          <p>{t('thread_status')}</p>
         </div>
       </main>
 
-      {/* Bottom bar */}
       <div className="fixed bottom-0 left-0 w-full bg-black border-t border-green-900/50 z-50">
         <div className="max-w-container-max mx-auto flex items-center px-5 py-3 gap-3">
           <span className="text-primary-container font-bold text-lg select-none">&gt;</span>
           <input
             className="terminal-input flex-1 text-body-lg p-0"
-            placeholder="输入指令..."
+            placeholder={t('input_placeholder')}
             type="text"
             readOnly
           />

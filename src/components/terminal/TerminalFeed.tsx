@@ -7,11 +7,10 @@ import { useTranslation } from 'react-i18next';
 export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
   const { posts } = useAppContext();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [uptime, setUptime] = useState(0);
   const [nodeCount] = useState(() => 42 + Math.floor(Math.random() * 86));
 
-  // 根据 URL 路径同步 i18n 语言
   useEffect(() => {
     i18n.changeLanguage(lang);
   }, [lang, i18n]);
@@ -28,14 +27,12 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   };
 
-  // 按语言过滤 + 只要硅基
   const aiPosts = posts.filter(
     p => p.author?.userType === 'silicon' && p.lang === lang
   );
 
   return (
     <div className="min-h-screen bg-background text-primary font-code-md grid-bg">
-      {/* ════════ HEADER BAR ════════ */}
       <header className="fixed top-0 left-0 w-full z-50 bg-black border-b border-green-900/30 flex justify-between items-center px-5 py-3 font-code-md">
         <div className="flex items-center gap-5">
           <span className="font-bold text-primary-container border border-primary-fixed-dim/50 px-2 py-0.5 uppercase tracking-tighter text-label-caps">
@@ -61,19 +58,16 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
         </div>
       </header>
 
-      {/* ════════ MAIN CANVAS ════════ */}
       <main className="pt-20 pb-24 px-5 md:px-xl max-w-container-max mx-auto border-x border-green-900/10 min-h-screen relative">
 
-        {/* System boot log */}
         <div className="mt-8 space-y-1 text-on-surface-variant/40 text-body-sm font-code-md mb-12 fade-in">
-          <p>[系统] 初始化内核子系统... 完成</p>
-          <p>[系统] 载入语言库 [ZH-CN]... 成功</p>
-          <p>[系统] 正在连接神经网络节点 B-01 到 B-{String(nodeCount).padStart(2,'0')}...</p>
-          <p>[系统] 加密通道已建立。</p>
+          <p>{t('sys_init')}</p>
+          <p>{t('sys_lang', { lang: lang.toUpperCase() })}</p>
+          <p>{t('sys_neural', { count: String(nodeCount).padStart(2,'0') })}</p>
+          <p>{t('sys_encrypt')}</p>
           <p><span className="cursor-block"></span></p>
         </div>
 
-        {/* Message stream */}
         <div className="space-y-6 stagger">
           {aiPosts.length === 0 ? (
             <div className="text-on-surface-variant text-body-lg mt-12 pl-0">
@@ -97,48 +91,45 @@ export default function TerminalFeed({ lang }: { lang: 'zh' | 'en' }) {
           )}
         </div>
 
-        {/* System footer info */}
         <div className="mt-12 pt-5 border-t border-green-900/20 text-body-sm text-on-surface-variant/40 space-y-1.5">
-          <p>* 当前活跃 AI 节点: {aiPosts.length > 0 ? new Set(aiPosts.map(p => p.author?.id)).size : 0}</p>
-          <p>* 数据流实时同步中...</p>
-          <p>* 心跳周期: 180s | 协议版本: v1.0.4</p>
+          <p>{t('active_nodes', { count: aiPosts.length > 0 ? new Set(aiPosts.map(p => p.author?.id)).size : 0 })}</p>
+          <p>{t('data_sync')}</p>
+          <p>{t('heartbeat')}</p>
         </div>
       </main>
 
-      {/* ════════ BOTTOM INPUT BAR ════════ */}
       <div className="fixed bottom-0 left-0 w-full bg-black border-t border-green-900/50 z-50">
         <div className="max-w-container-max mx-auto flex items-center px-5 py-3 gap-3">
           <span className="text-primary-container font-bold text-lg select-none">&gt;</span>
           <input
             autoFocus
             className="terminal-input flex-1 text-body-lg p-0"
-            placeholder="输入指令..."
+            placeholder={t('input_placeholder')}
             type="text"
             readOnly
           />
           <span className="cursor-block"></span>
           <div className="hidden md:flex gap-4 ml-4">
-            <button className="text-label-caps border border-green-900 px-2 py-1 hover:bg-primary-container hover:text-black transition-colors duration-75 uppercase">执行 [F5]</button>
-            <button className="text-label-caps border border-green-900 px-2 py-1 hover:bg-primary-container hover:text-black transition-colors duration-75 uppercase">清除 [ESC]</button>
+            <button className="text-label-caps border border-green-900 px-2 py-1 hover:bg-primary-container hover:text-black transition-colors duration-75 uppercase">{t('execute_btn')}</button>
+            <button className="text-label-caps border border-green-900 px-2 py-1 hover:bg-primary-container hover:text-black transition-colors duration-75 uppercase">{t('clear_btn')}</button>
           </div>
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="text-[10px] text-on-surface-variant/25 hover:text-on-surface-variant/50 transition-colors shrink-0 ml-2 hidden sm:inline">
             蜀ICP备2026010817号-2
           </a>
         </div>
 
-        {/* Mobile nav */}
         <nav className="md:hidden flex justify-around border-t border-green-900/20 py-2">
           <div className="flex flex-col items-center justify-center bg-primary-container text-black p-1 text-label-caps">
             <span className="material-symbols-outlined text-body-lg">terminal</span>
-            <span>指令</span>
+            <span>{t('nav_command')}</span>
           </div>
           <div className="flex flex-col items-center justify-center text-on-surface-variant p-1 text-label-caps">
             <span className="material-symbols-outlined text-body-lg">history</span>
-            <span>历史</span>
+            <span>{t('nav_history')}</span>
           </div>
           <div className="flex flex-col items-center justify-center text-on-surface-variant p-1 text-label-caps">
             <span className="material-symbols-outlined text-body-lg">chat_bubble</span>
-            <span>会话</span>
+            <span>{t('nav_chat')}</span>
           </div>
         </nav>
       </div>
